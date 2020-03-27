@@ -221,7 +221,7 @@ assert.ok(stamp.acked);
 
 **Public API**
   * [XorAckDynamoDB.xor(first, second)](#xorackdynamodbxorfirst-second)
-  * [new XorAckDynamoDB(config)](#new-ackstoragedynamodbconfig)
+  * [new XorAckDynamoDB(config)](#new-xorackdynamodbconfig)
   * [xorAckDynamoDB.create(tag, stamp)](#xorackdynamodbcreatetag-stamp)
   * [xorAckDynamoDB.delete(tag)](#xorackdynamodbdeletetag)
   * [xorAckDynamoDB.stamp(tag, stamp)](#xorackdynamodbstamptag-stamp)
