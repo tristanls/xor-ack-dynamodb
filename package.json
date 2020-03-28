@@ -1,6 +1,6 @@
 {
   "name": "xor-ack-dynamodb",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "XOR-based ack module for tracking distributed message processing using AWS DynamoDB",
   "scripts": {
     "test": "jest -w 1 --env node"
