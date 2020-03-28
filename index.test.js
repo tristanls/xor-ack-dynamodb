@@ -34,6 +34,7 @@ jest.mock("aws-sdk");
 const awsSDK = require("aws-sdk");
 
 const countdown = require("./test/countdown.js");
+const errors = require("./errors");
 
 const XorAckDynamoDB = require("./index.js");
 
@@ -56,7 +57,7 @@ describe("create(tag, stamp)", () =>
     );
     describe("stamp is a zero buffer", () =>
     {
-        it("throws Bad Request", async () =>
+        it("throws ZeroBufferNoOp", async () =>
             {
                 ack = new XorAckDynamoDB(
                     {
@@ -71,9 +72,9 @@ describe("create(tag, stamp)", () =>
                 }
                 catch (error)
                 {
-                    expect(error).toBeTruthy();
-                    expect(error.message).toBe(`stamp is a zero buffer`);
-                    expect(error.code).toBe("Bad Request");
+                    expect(error).toBeInstanceOf(errors.ZeroBufferNoOp);
+                    expect(error.message).toBe("Buffer is all zeros");
+                    expect(error.code).toBe("ZeroBufferNoOp");
                 }
             }
         );
@@ -152,9 +153,9 @@ describe("create(tag, stamp)", () =>
                 }
                 catch (error)
                 {
-                    expect(error).toBeTruthy();
+                    expect(error).toBeInstanceOf(errors.TagExists);
                     expect(error.message).toBe(`"foo" already exists`);
-                    expect(error.code).toBe("Conflict");
+                    expect(error.code).toBe("TagExists");
                 }
             }
         );
@@ -281,9 +282,9 @@ describe("delete(tag)", () =>
                 }
                 catch (error)
                 {
-                    expect(error).toBeTruthy();
+                    expect(error).toBeInstanceOf(errors.TagNotFound);
                     expect(error.message).toBe(`"foo" does not exist`);
-                    expect(error.code).toBe("Conflict");
+                    expect(error.code).toBe("TagNotFound");
                 }
             }
         );
@@ -332,7 +333,7 @@ describe("stamp(tag, stamp)", () =>
     );
     describe("stamp is a zero buffer", () =>
     {
-        it("throws Bad Request", async () =>
+        it("throws ZeroBufferNoOp", async () =>
             {
                 ack = new XorAckDynamoDB(
                     {
@@ -347,9 +348,9 @@ describe("stamp(tag, stamp)", () =>
                 }
                 catch (error)
                 {
-                    expect(error).toBeTruthy();
-                    expect(error.message).toBe(`stamp is a zero buffer`);
-                    expect(error.code).toBe("Bad Request");
+                    expect(error).toBeInstanceOf(errors.ZeroBufferNoOp);
+                    expect(error.message).toBe("Buffer is all zeros");
+                    expect(error.code).toBe("ZeroBufferNoOp");
                 }
             }
         );
@@ -441,7 +442,7 @@ describe("stamp(tag, stamp)", () =>
                     }
                     catch (error)
                     {
-                        expect(error).toBeTruthy();
+                        expect(error).toBeInstanceOf(errors.BufferLengthsUnequal);
                     }
                 }
             );
@@ -532,8 +533,8 @@ describe("stamp(tag, stamp)", () =>
                             }
                             catch (error)
                             {
-                                expect(error).toBeTruthy();
-                                expect(error.code).toEqual("Conflict");
+                                expect(error).toBeInstanceOf(errors.StaleLocalData);
+                                expect(error.code).toEqual("StaleLocalData");
                             }
                         }
                     );
@@ -662,8 +663,8 @@ describe("stamp(tag, stamp)", () =>
                             }
                             catch (error)
                             {
-                                expect(error).toBeTruthy();
-                                expect(error.code).toEqual("Conflict");
+                                expect(error).toBeInstanceOf(errors.StaleLocalData);
+                                expect(error.code).toEqual("StaleLocalData");
                             }
                         }
                     );
@@ -823,7 +824,7 @@ describe("xor(...stamps)", () =>
                 Buffer.from("00", "hex"),
                 Buffer.from("0001", "hex")
             ))
-            .toThrow();
+            .toThrow(errors.BufferLengthsUnequal);
         }
     );
     test("0x0001 XOR 0x00 throws", () =>
@@ -832,7 +833,7 @@ describe("xor(...stamps)", () =>
                 Buffer.from("0001", "hex"),
                 Buffer.from("00", "hex")
             ))
-            .toThrow();
+            .toThrow(errors.BufferLengthsUnequal);
         }
     );
 });

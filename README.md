@@ -212,7 +212,34 @@ stamp = await ack.stamp(tag, newStamp);
 assert.ok(stamp.acked);
 ```
 
+### Errors
+
+```javascript
+// (...)
+const XorAckDynamoDB = require("xor-ack-dynamodb");
+const errors = require("xor-ack-dynamodb/errors");
+
+try
+{
+    await XorAckDynamoDB.xor();
+}
+catch (error)
+{
+    if (error instanceof errors.LessThanTwoBuffers)
+    {
+        console.log(error.message);
+    }
+    else
+    {
+        throw error;
+    }
+}
+```
+
 ## Documentation
+
+  * [XorAckDynamoDB](#xorackdynamodb)
+  * [errors](#errors)
 
 ### XorAckDynamoDB
 
@@ -228,9 +255,9 @@ assert.ok(stamp.acked);
   * `...stamps`: _Buffer_ Buffers to XOR.
   * Return: _Buffer_ The XOR result.
     * `acked`: _Boolean_ `true` if result is all zeros, `false` otherwise.
-  * Throws: _Error_
-    * "At least two buffers expected"
-    * "Buffer lengths are not equal"
+  * Throws:
+    * `BufferLengthsUnequal`
+    * `LessThanTwoBuffers`
 
 Performs binary XOR operation across all `stamps`. Throws if buffer lengths are unequal or if less than two buffers are specified.
 
@@ -249,9 +276,9 @@ Creates a new `XorAckDynamoDB` instance.
   * `stamp`: _Buffer_ Initial buffer stamp to create ack chain with.
   * Return: _Buffer_ `stamp`.
     * `acked`: _Boolean_ `false`.
-  * Throws: _Error_
-    * `{ code: "Bad Request", message: "stamp is a zero buffer" }`
-    * `{ code: "Conflict", message: ""${tag}" already exists" }`
+  * Throws:
+    * `TagExists`
+    * `ZeroBufferNoOp`
     * DynamoDB.DocumentClient error
 
 Creates a new ack chain for specified `tag`.
@@ -259,8 +286,8 @@ Creates a new ack chain for specified `tag`.
 #### xorAckDynamoDB.delete(tag)
 
   * `tag`: _String_ Identifier of ack chain delete.
-  * Throws: _Error_
-    * `{ code: "Conflict", message: ""${tag}" does not exist" }`
+  * Throws:
+    * `TagNotFound`
     * DynamoDB.DocumentClient error
 
 Deletes ack chain specified by `tag`.
@@ -271,12 +298,38 @@ Deletes ack chain specified by `tag`.
   * `stamp`: _Buffer_ Stamp to XOR with existing stamp.
   * Return: _Buffer_ XOR result of `stamp` and existing stamp.
     * `acked`: _Boolean_ _Boolean_ `true` if XOR result is all zeros, `false` otherwise.
-  * Throws: _Error_
-    * `{ code: "Bad Request", message: "stamp is a zero buffer" }`
-    * `{ code: "Conflict", message: "Conflict" }`
+  * Throws:
+    * `StaleLocalData`
+    * `ZeroBufferNoOp`
     * DynamoDB.DocumentClient error
 
 Updates ack chain for specified `tag` by XOR'ing existing stamp with provided `stamp`.
+
+### Errors
+
+#### BufferLengthsUnequal
+
+Attempted to XOR buffers of different lengths. This is probably a programming bug.
+
+#### LessThanTwoBuffers
+
+Attempted to XOR less than two buffers. This is probably a programming bug.
+
+#### StaleLocalData
+
+When attempting `stamp()`, it means that the `stamp` stored in the datastore changed since it was retrieved by the module to perform the `stamp()` operation. This is a transient condition and part of normal operation. Retries should be attempted until success.
+
+#### TagExists
+
+When attempting `create()`, it means that the specified `tag` already exists. This is probably a programming bug.
+
+#### TagNotFound
+
+When attempting `delete()`, it means that the specified `tag` does not exist in the datastore.
+
+#### ZeroBufferNoOp
+
+Attempted to create or stamp an existing tag with a buffer that contains all zeros. This is a no-op and probably a programming bug.
 
 ## Releases
 

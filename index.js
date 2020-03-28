@@ -30,6 +30,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 "use strict";
 
+const errors = require("./errors");
 const pkg = require("./package.json");
 
 class XorAckDynamoDB
@@ -65,22 +66,22 @@ class XorAckDynamoDB
         * `...stamps`: _Buffer_ Buffers to XOR.
         * Return: _Buffer_ The XOR result.
           * `acked`: _Boolean_ `true` if result is all zeros, `false` otherwise.
-        * Throws: _Error_
-          * "At least two buffers expected"
-          * "Buffer lengths are not equal"
+        * Throws:
+          * LessThanTwoBuffers
+          * BufferLengthsUnequal
     */
     static xor(...stamps)
     {
         if (stamps.length < 2)
         {
-            throw new Error("At least two buffers expected");
+            throw new errors.LessThanTwoBuffers();
         }
         let result = Buffer.from(stamps[0]);
         for (let i = 1; i < stamps.length - 1; i++)
         {
             if (result.length != stamps[i].length)
             {
-                throw new Error("Buffer lengths are not equal");
+                throw new errors.BufferLengthsUnequal();
             }
             for (let k = 0; k < result.length; k++)
             {
@@ -89,7 +90,7 @@ class XorAckDynamoDB
         }
         if (result.length != stamps[stamps.length - 1].length)
         {
-            throw new Error("Buffer lengths are not equal");
+            throw new errors.BufferLengthsUnequal();
         }
         let allZeros = true;
         for (let k = 0; k < result.length; k++)
@@ -112,9 +113,9 @@ class XorAckDynamoDB
       * `stamp`: _Buffer_ Initial buffer stamp to create ack chain with.
       * Return: _Buffer_ `stamp`.
         * `acked`: _Boolean_ `false`.
-      * Throws: _Error_
-        * `{ code: "Bad Request", message: "stamp is a zero buffer" }`
-        * `{ code: "Conflict", message: ""${tag}" already exists" }`
+      * Throws:
+        * TagExists
+        * ZeroBufferNoOp
         * DynamoDB.DocumentClient error
     */
     async create(tag, stamp)
@@ -131,9 +132,7 @@ class XorAckDynamoDB
         }
         if (allZeros)
         {
-            const error = new Error("stamp is a zero buffer");
-            error.code = "Bad Request";
-            throw error;
+            throw new errors.ZeroBufferNoOp();
         }
         const params =
         {
@@ -158,9 +157,7 @@ class XorAckDynamoDB
         {
             if (error.code == "ConditionalCheckFailedException")
             {
-                error = new Error(`"${tag}" already exists`);
-                error.code = "Conflict";
-                throw error;
+                throw new errors.TagExists(tag);
             }
             throw error;
         }
@@ -173,6 +170,9 @@ class XorAckDynamoDB
 
     /*
       * `tag`: _String_ Identifier of ack chain delete.
+      * Throws:
+        * TagNotFound
+        * DynamoDB.DocumentClient error
     */
     async delete(tag)
     {
@@ -199,9 +199,7 @@ class XorAckDynamoDB
         {
             if (error.code == "ConditionalCheckFailedException")
             {
-                error = new Error(`"${tag}" does not exist`);
-                error.code = "Conflict";
-                throw error;
+                throw new errors.TagNotFound(tag);
             }
             throw error;
         }
@@ -213,9 +211,9 @@ class XorAckDynamoDB
         * `stamp`: _Buffer_ Stamp to XOR with existing stamp.
         * Return: _Buffer_ XOR result of `stamp` and stored stamp.
           * `acked`: _Boolean_ `true` if XOR result is all zeros, `false` otherwise.
-        * Throws: _Error_
-          * `{ code: "Bad Request", message: "stamp is a zero buffer" }`
-          * `{ code: "Conflict", message: "Conflict" }`
+        * Throws:
+          * StaleLocalData
+          * ZeroBufferNoOp
           * DynamoDB.DocumentClient error
     */
     async stamp(tag, stamp)
@@ -232,9 +230,7 @@ class XorAckDynamoDB
         }
         if (allZeros)
         {
-            const error = new Error("stamp is a zero buffer");
-            error.code = "Bad Request";
-            throw error;
+            throw new errors.ZeroBufferNoOp();
         }
         let params =
         {
@@ -278,9 +274,7 @@ class XorAckDynamoDB
             {
                 if (error.code == "ConditionalCheckFailedException")
                 {
-                    error = new Error("Conflict");
-                    error.code = "Conflict";
-                    throw error;
+                    throw new errors.StaleLocalData();
                 }
                 throw error;
             }
@@ -315,9 +309,7 @@ class XorAckDynamoDB
             {
                 if (error.code == "ConditionalCheckFailedException")
                 {
-                    error = new Error("Conflict");
-                    error.code = "Conflict";
-                    throw error;
+                    throw new errors.StaleLocalData();
                 }
                 throw error;
             }
@@ -329,6 +321,6 @@ class XorAckDynamoDB
 XorAckDynamoDB.SCHEMA =
 {
     config: require("./schema.js")
-}
+};
 
 module.exports = XorAckDynamoDB;
