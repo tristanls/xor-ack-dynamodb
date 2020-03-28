@@ -23,7 +23,7 @@ _Stability: 1 - [Experimental](https://github.com/tristanls/stability-index#stab
 
 ### How it works
 
-Ack uses properties of bitwise XOR operation to implement tracking functionality. Here is a quick overview of the relevant aspects of XOR. The XOR (`^`) operation has the following properties:
+`xor-ack-dynamodb` uses properties of bitwise XOR operation to implement tracking functionality. Here is a quick overview of the relevant aspects of XOR. The XOR (`^`) operation has the following properties:
 
 `A ^ A = 0`
 
