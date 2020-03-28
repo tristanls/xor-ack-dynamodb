@@ -255,8 +255,8 @@ catch (error)
   * Return: _Buffer_ The XOR result.
     * `acked`: _Boolean_ `true` if result is all zeros, `false` otherwise.
   * Throws:
-    * `[BufferLengthsUnequal](#bufferlengthsunequal)`
-    * `[LessThanTwoBuffers](#lessthantwobuffers)`
+    * [`BufferLengthsUnequal`](#bufferlengthsunequal)
+    * [`LessThanTwoBuffers`](#lessthantwobuffers)
 
 Performs binary XOR operation across all `stamps`. Throws if buffer lengths are unequal or if less than two buffers are specified.
 
@@ -276,8 +276,8 @@ Creates a new `XorAckDynamoDB` instance.
   * Return: _Buffer_ `stamp`.
     * `acked`: _Boolean_ `false`.
   * Throws:
-    * `[TagExists](#tagexists)`
-    * `[ZeroBufferNoOp](#zerobuffernoop)`
+    * [`TagExists`](#tagexists)
+    * [`ZeroBufferNoOp`](#zerobuffernoop)
     * DynamoDB.DocumentClient error
 
 Creates a new ack chain for specified `tag`.
@@ -286,7 +286,7 @@ Creates a new ack chain for specified `tag`.
 
   * `tag`: _String_ Identifier of ack chain delete.
   * Throws:
-    * `[TagNotFound](#tagnotfound)`
+    * [`TagNotFound`](#tagnotfound)
     * DynamoDB.DocumentClient error
 
 Deletes ack chain specified by `tag`.
@@ -298,8 +298,8 @@ Deletes ack chain specified by `tag`.
   * Return: _Buffer_ XOR result of `stamp` and existing stamp.
     * `acked`: _Boolean_ _Boolean_ `true` if XOR result is all zeros, `false` otherwise.
   * Throws:
-    * `[StaleLocalData](#stalelocaldata)`
-    * `[ZeroBufferNoOp](#zerobuffernoop)`
+    * [`StaleLocalData`](#stalelocaldata)
+    * [`ZeroBufferNoOp`](#zerobuffernoop)
     * DynamoDB.DocumentClient error
 
 Updates ack chain for specified `tag` by XOR'ing existing stamp with provided `stamp`.
