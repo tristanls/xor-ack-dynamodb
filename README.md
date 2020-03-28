@@ -179,7 +179,7 @@ const AWS = require("aws-sdk");
 const crypto = require("crypto");
 const XorAckDynamoDB = require("xor-ack-dynamodb");
 
-const dynamoDB = new AWS.dynamoDB.DocumentClient(
+const dynamoDB = new AWS.DynamoDB.DocumentClient(
     {
         region: "us-east-1"
     }
@@ -203,14 +203,11 @@ const word1Stamp = crypto.randomBytes(64);
 const word2Stamp = crypto.randomBytes(64);
 const word3Stamp = crypto.randomBytes(64);
 
-let newStamp = XorAckDynamoDB.xor(fileStamp, word1Stamp);
-newStamp = XorAckDynamoDB.xor(newStamp, word2Stamp);
-newStamp = XorAckDynamoDB.xor(newStamp, word3Stamp);
+let newStamp = XorAckDynamoDB.xor(fileStamp, word1Stamp, word2Stamp, word3Stamp);
 stamp = await ack.stamp(tag, newStamp);
 assert.ok(!stamp.acked);
 
-newStamp = XorAckDynamoDB.xor(word1Stamp, word2Stamp);
-newStamp = XorAckDynamoDB.xor(newStamp, word3Stamp);
+newStamp = XorAckDynamoDB.xor(word1Stamp, word2Stamp, word3Stamp);
 stamp = await ack.stamp(tag, newStamp);
 assert.ok(stamp.acked);
 ```
@@ -220,22 +217,22 @@ assert.ok(stamp.acked);
 ### XorAckDynamoDB
 
 **Public API**
-  * [XorAckDynamoDB.xor(first, second)](#xorackdynamodbxorfirst-second)
+  * [XorAckDynamoDB.xor(...stamps)](#xorackdynamodbxor-stamps)
   * [new XorAckDynamoDB(config)](#new-xorackdynamodbconfig)
   * [xorAckDynamoDB.create(tag, stamp)](#xorackdynamodbcreatetag-stamp)
   * [xorAckDynamoDB.delete(tag)](#xorackdynamodbdeletetag)
   * [xorAckDynamoDB.stamp(tag, stamp)](#xorackdynamodbstamptag-stamp)
 
-#### XorAckDynamoDB.xor(first, second)
+#### XorAckDynamoDB.xor(...stamps)
 
-  * `first`: _Buffer_ First buffer to XOR.
-  * `second`: _Buffer_ Second buffer to XOR.
+  * `...stamps`: _Buffer_ Buffers to XOR.
   * Return: _Buffer_ The XOR result.
     * `acked`: _Boolean_ `true` if result is all zeros, `false` otherwise.
   * Throws: _Error_
+    * "At least two buffers expected"
     * "Buffer lengths are not equal"
 
-Performs binary `first` XOR `second` operation. Throws if buffer lengths are unequal.
+Performs binary XOR operation across all `stamps`. Throws if buffer lengths are unequal or if less than two buffers are specified.
 
 #### new XorAckDynamoDB(config)
 

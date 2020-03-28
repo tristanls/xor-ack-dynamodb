@@ -710,12 +710,30 @@ describe("stamp(tag, stamp)", () =>
     });
 });
 
-describe("xor(first, second)", () =>
+describe("xor(...stamps)", () =>
 {
     test("0x00 XOR 0x00 is 0x00 and acked:true", () =>
         {
             expect(
                 XorAckDynamoDB.xor(
+                    Buffer.from("00", "hex"),
+                    Buffer.from("00", "hex")
+                )
+            )
+            .toEqual(
+                Object.assign(Buffer.from("00", "hex"),
+                    {
+                        acked: true
+                    }
+                )
+            );
+        }
+    );
+    test("0x00 XOR 0x00 XOR 0x00 is 0x00 and acked:true", () =>
+        {
+            expect(
+                XorAckDynamoDB.xor(
+                    Buffer.from("00", "hex"),
                     Buffer.from("00", "hex"),
                     Buffer.from("00", "hex")
                 )
@@ -746,12 +764,48 @@ describe("xor(first, second)", () =>
             );
         }
     );
+    test("0x10 XOR 0x01 XOR 0x02 is 0x13 and acked:false", () =>
+        {
+            expect(
+                XorAckDynamoDB.xor(
+                    Buffer.from("10", "hex"),
+                    Buffer.from("01", "hex"),
+                    Buffer.from("02", "hex")
+                )
+            )
+            .toEqual(
+                Object.assign(Buffer.from("13", "hex"),
+                    {
+                        acked: false
+                    }
+                )
+            );
+        }
+    );
     test("0x10 XOR 0x10 is 0x00 and acked:true", () =>
         {
             expect(
                 XorAckDynamoDB.xor(
                     Buffer.from("10", "hex"),
                     Buffer.from("10", "hex")
+                )
+            )
+            .toEqual(
+                Object.assign(Buffer.from("00", "hex"),
+                    {
+                        acked: true
+                    }
+                )
+            );
+        }
+    );
+    test("0x10 XOR 0x01 XOR 0x11 is 0x00 and acked:true", () =>
+        {
+            expect(
+                XorAckDynamoDB.xor(
+                    Buffer.from("10", "hex"),
+                    Buffer.from("01", "hex"),
+                    Buffer.from("11", "hex")
                 )
             )
             .toEqual(

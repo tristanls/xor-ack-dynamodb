@@ -62,25 +62,40 @@ class XorAckDynamoDB
     }
 
     /*
-        * `first`: _Buffer_ First buffer to XOR.
-        * `second`: _Buffer_ Second buffer to XOR.
+        * `...stamps`: _Buffer_ Buffers to XOR.
         * Return: _Buffer_ The XOR result.
           * `acked`: _Boolean_ `true` if result is all zeros, `false` otherwise.
         * Throws: _Error_
+          * "At least two buffers expected"
           * "Buffer lengths are not equal"
     */
-    static xor(first, second)
+    static xor(...stamps)
     {
-        if (first.length != second.length)
+        if (stamps.length < 2)
+        {
+            throw new Error("At least two buffers expected");
+        }
+        let result = Buffer.from(stamps[0]);
+        for (let i = 1; i < stamps.length - 1; i++)
+        {
+            if (result.length != stamps[i].length)
+            {
+                throw new Error("Buffer lengths are not equal");
+            }
+            for (let k = 0; k < result.length; k++)
+            {
+                result[k] = result[k] ^ stamps[i][k];
+            }
+        }
+        if (result.length != stamps[stamps.length - 1].length)
         {
             throw new Error("Buffer lengths are not equal");
         }
-        const result = Buffer.allocUnsafe(first.length);
         let allZeros = true;
-        for (let i = 0; i < first.length; i++)
+        for (let k = 0; k < result.length; k++)
         {
-            result[i] = first[i] ^ second[i];
-            if (result[i] != 0)
+            result[k] = result[k] ^ stamps[stamps.length -1][k];
+            if (result[k] != 0)
             {
                 allZeros = false;
             }
