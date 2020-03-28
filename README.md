@@ -215,7 +215,6 @@ assert.ok(stamp.acked);
 ### Errors
 
 ```javascript
-// (...)
 const XorAckDynamoDB = require("xor-ack-dynamodb");
 const errors = require("xor-ack-dynamodb/errors");
 
@@ -239,7 +238,7 @@ catch (error)
 ## Documentation
 
   * [XorAckDynamoDB](#xorackdynamodb)
-  * [errors](#errors)
+  * [errors](#errors-1)
 
 ### XorAckDynamoDB
 
